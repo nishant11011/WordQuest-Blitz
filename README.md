@@ -1,1 +1,1 @@
-# Boggle
+# WordQuest Blitz
