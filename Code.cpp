@@ -162,9 +162,9 @@ int main()
         insert(root, dictionary[i]);
  
     char boggle[M][N] = { { 'R', 'T', 'Y' ,'R' },
-                          { 'E', 'W', 'T' , 'P },
-                          { 'C', 'A', 'L' ,'T} },
-                          {'E', ' H' ,'A' , 'E'} };
+                          { 'E', 'W', 'T' , 'P' },
+                          { 'C', 'A', 'L' ,'T'} },
+                          {'E', 'H' ,'A' , 'E'} };
  
     findWords(boggle, root);
  
