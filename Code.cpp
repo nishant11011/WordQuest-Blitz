@@ -1,172 +1,182 @@
-#include <bits/stdc++.h>
+#include <iostream>
+#include <fstream>
+#include <cstdlib>
+#include <ctime>
+#include <vector>
+#include <string>
+
 using namespace std;
- 
-// Converts key current character into index
-// use only 'A' through 'Z'
-#define char_int(c) ((int)c - (int)'A')
- 
-// Alphabet size
-#define SIZE (26)
- 
-#define M 3
-#define N 3
- 
-// trie Node
-struct TrieNode {
-    TrieNode* Child[SIZE];
- 
-    // isLeaf is true if the node represents
-    // end of a word
-    bool leaf;
+class TrieNode{                //properties of a node of type Trie
+public:
+    char value;
+    TrieNode* child[26];
+    int endword;                // to check if a word is ending here
+    TrieNode(char value){       // constructor
+        this->value=value;
+        for(auto i=0;i<26;i++){
+            child[i]=NULL;
+        }
+        endword=0;
+    }
 };
- 
-// Returns new trie node (initialized to NULLs)
-TrieNode* getNode()
-{
-    TrieNode* newNode = new TrieNode;
-    newNode->leaf = false;
-    for (int i = 0; i < SIZE; i++)
-        newNode->Child[i] = NULL;
-    return newNode;
-}
- 
-// If not present, inserts a key into the trie
-// If the key is a prefix of trie node, just
-// marks leaf node
-void insert(TrieNode* root, char* Key)
-{
-    int n = strlen(Key);
-    TrieNode* pChild = root;
- 
-    for (int i = 0; i < n; i++) {
-        int index = char_int(Key[i]);
- 
-        if (pChild->Child[index] == NULL)
-            pChild->Child[index] = getNode();
- 
-        pChild = pChild->Child[index];
-    }
- 
-    // make last node as leaf node
-    pChild->leaf = true;
-}
- 
-// function to check that current location
-// (i and j) is in matrix range
-bool isSafe(int i, int j, bool visited[M][N])
-{
-    return (i >= 0 && i < M && j >= 0 && j < N && !visited[i][j]);
-}
- 
-// A recursive function to print all words present on boggle
-void searchWord(TrieNode* root, char boggle[M][N], int i,
-                int j, bool visited[][N], string str)
-{
-    // if we found word in trie / dictionary
-    if (root->leaf == true)
-        cout << str << endl;
- 
-    // If both I and j in  range and we visited
-    // that element of matrix first time
-    if (isSafe(i, j, visited)) {
-        // make it visited
-        visited[i][j] = true;
- 
-        // traverse all childs of current root
-        for (int K = 0; K < SIZE; K++) {
-            if (root->Child[K] != NULL) {
-                // current character
-                char ch = (char)K + (char)'A';
- 
-                // Recursively search reaming character of word
-                // in trie for all 8 adjacent cells of boggle[i][j]
-                if (isSafe(i + 1, j + 1, visited)
-                    && boggle[i + 1][j + 1] == ch)
-                    searchWord(root->Child[K], boggle,
-                               i + 1, j + 1, visited, str + ch);
-                if (isSafe(i, j + 1, visited)
-                    && boggle[i][j + 1] == ch)
-                    searchWord(root->Child[K], boggle,
-                               i, j + 1, visited, str + ch);
-                if (isSafe(i - 1, j + 1, visited)
-                    && boggle[i - 1][j + 1] == ch)
-                    searchWord(root->Child[K], boggle,
-                               i - 1, j + 1, visited, str + ch);
-                if (isSafe(i + 1, j, visited)
-                    && boggle[i + 1][j] == ch)
-                    searchWord(root->Child[K], boggle,
-                               i + 1, j, visited, str + ch);
-                if (isSafe(i + 1, j - 1, visited)
-                    && boggle[i + 1][j - 1] == ch)
-                    searchWord(root->Child[K], boggle,
-                               i + 1, j - 1, visited, str + ch);
-                if (isSafe(i, j - 1, visited)
-                    && boggle[i][j - 1] == ch)
-                    searchWord(root->Child[K], boggle,
-                               i, j - 1, visited, str + ch);
-                if (isSafe(i - 1, j - 1, visited)
-                    && boggle[i - 1][j - 1] == ch)
-                    searchWord(root->Child[K], boggle,
-                               i - 1, j - 1, visited, str + ch);
-                if (isSafe(i - 1, j, visited)
-                    && boggle[i - 1][j] == ch)
-                    searchWord(root->Child[K], boggle,
-                               i - 1, j, visited, str + ch);
-            }
+
+void Trie(string word, TrieNode *root){           // function insert a word into a trie
+    auto wordsize=word.size();
+    for(auto i=0;i<wordsize;i++){
+        if(root->child[(int)word[i]-(int)'a']==NULL){
+            root->child[(int)word[i]-(int)'a']=new TrieNode(word[i]);  // creating a new node
         }
- 
-        // make current element unvisited
-        visited[i][j] = false;
+        root=root->child[(int)word[i]-(int)'a'];
     }
+    root->endword++;   // word ends here at the last letter
+    return;
 }
- 
-// Prints all words present in dictionary.
-void findWords(char boggle[M][N], TrieNode* root)
-{
-    // Mark all characters as not visited
-    bool visited[M][N];
-    memset(visited, false, sizeof(visited));
- 
-    TrieNode* pChild = root;
- 
-    string str = "";
- 
-    // traverse all matrix elements
-    for (int i = 0; i < M; i++) {
-        for (int j = 0; j < N; j++) {
-            // we start searching for word in dictionary
-            // if we found a character which is child
-            // of Trie root
-            if (pChild->Child[char_int(boggle[i][j])]) {
-                str = str + boggle[i][j];
-                searchWord(pChild->Child[char_int(boggle[i][j])],
-                           boggle, i, j, visited, str);
-                str = "";
-            }
+
+void boggleCreater(char boggle[4][4]){    // function to create a boggle
+    char dice[16][6]={{'r','i','f','o','b','x'},{'i','f','e','h','e','y'},{'d','e','n','o','w','s'},{'u','t','o','k','n','d'},{'h','m','s','r','a','o'},{'l','u','p','e','t','s'},{'a','c','i','t','o','a'},{'y','l','g','k','u','e'},{'q','b','m','j','o','a'},{'e','h','i','s','p','n'},{'v','e','t','i','g','n'},{'b','a','l','i','y','t'},{'e','z','a','v','n','d'},{'r','a','l','e','s','c'},{'u','w','i','l','r','g'},{'p','a','c','e','m','d'}};
+    int spot=0;       // variable to choose which die to use
+    for(int i=0;i<4;i++){
+        for(int j=0;j<4;j++){
+            boggle[i][j]=dice[spot][(rand()%6)];  // rand() produces a random integer
+            spot++;
         }
     }
 }
- 
-// Driver program to test above function
-int main()
-{
-    // Let the given dictionary be following
-    char* dictionary[] = { "REAL", "HATE", "PLACE", "WET","HAT" };
- 
-    // root Node of trie
-    TrieNode* root = getNode();
- 
-    // insert all words of dictionary into trie
-    int n = sizeof(dictionary) / sizeof(dictionary[0]);
-    for (int i = 0; i < n; i++)
-        insert(root, dictionary[i]);
- 
-    char boggle[M][N] = { { 'R', 'T', 'Y' ,'R' },
-                          { 'E', 'W', 'T' , 'P' },
-                          { 'C', 'A', 'L' ,'T'} },
-                          {'E', 'H' ,'A' , 'E'} };
- 
-    findWords(boggle, root);
- 
+
+bool valid(int i,int j){           // function to check if the index we want to go to is valid or not
+    if(i>=0 && i<4 && j>=0 && j<4){
+        return true;
+    }
+    return false;
+}
+
+void isWordPresentHelper(TrieNode *root, char boggle[4][4],string str,int i,int j,int visited[][4],vector<string> &ans){               // function to help find words
+    if(root->endword>0){   // if word is found then it is pushed into the answer vector
+        ans.push_back(str);
+        root->endword--;     // this is done to prevent saving a word more than once
+    }
+    visited[i][j]=1;         // marking the letter as visited
+    for(auto k=0;k<26;k++){    // checking children nodes to see if word is present
+        if(root->child[k]!=NULL){
+            char ch=root->child[k]->value;
+            if(valid(i-1, j-1) && !visited[i-1][j-1] && boggle[i-1][j-1]==ch){
+                isWordPresentHelper(root->child[(int)boggle[i-1][j-1]-(int)'a'], boggle, str+ch, i-1, j-1,visited,ans);
+            }
+            if(valid(i-1, j) && !visited[i-1][j] && boggle[i-1][j]==ch){
+                isWordPresentHelper(root->child[(int)boggle[i-1][j]-(int)'a'], boggle, str+ch, i-1, j,visited,ans);
+            }
+            if(valid(i-1, j+1) && !visited[i-1][j+1] && boggle[i-1][j+1]==ch){
+                isWordPresentHelper(root->child[(int)boggle[i-1][j+1]-(int)'a'], boggle, str+ch, i-1, j+1,visited,ans);
+            }
+            if(valid(i, j+1) && !visited[i][j+1] && boggle[i][j+1]==ch){
+                isWordPresentHelper(root->child[(int)boggle[i][j+1]-(int)'a'], boggle, str+ch, i, j+1,visited,ans);
+            }
+            if(valid(i+1, j+1) && !visited[i+1][j+1] && boggle[i+1][j+1]==ch){
+                isWordPresentHelper(root->child[(int)boggle[i+1][j+1]-(int)'a'], boggle, str+ch, i+1, j+1,visited,ans);
+            }
+            if(valid(i+1, j) && !visited[i+1][j] && boggle[i+1][j]==ch){
+                isWordPresentHelper(root->child[(int)boggle[i+1][j]-(int)'a'], boggle, str+ch, i+1, j,visited,ans);
+            }
+            if(valid(i+1, j-1) && !visited[i+1][j-1] && boggle[i+1][j-1]==ch){
+                isWordPresentHelper(root->child[(int)boggle[i+1][j-1]-(int)'a'], boggle, str+ch, i+1, j-1,visited,ans);
+            }
+            if(valid(i, j-1) && !visited[i][j-1] && boggle[i][j-1]==ch){
+                isWordPresentHelper(root->child[(int)boggle[i][j-1]-(int)'a'], boggle, str+ch, i, j-1,visited,ans);
+            }
+        }
+    }
+    visited[i][j]=0;
+}
+
+vector<string> isWordPresent(TrieNode *root,char boggle[4][4]){       // function to check which words are present in
+    vector<string> ans;                                               // the boggle
+    TrieNode *tempnode=root;
+    string str="";
+    int visited[4][4];                                               // an array to check if an index has been visited
+    for(int i=0;i<4;i++){                                            //or not
+        for(int j=0;j<4;j++){
+            visited[i][j]=0;
+        }
+    }
+    for(auto i=0;i<4;i++){                                          // checking for every letter in boggle
+        for(auto j=0;j<4;j++){
+            if(tempnode->child[(int)boggle[i][j]-(int)'a']!=NULL){
+                str+=boggle[i][j];
+                tempnode=tempnode->child[(int)boggle[i][j]-(int)'a'];
+                isWordPresentHelper(tempnode, boggle, str, i, j, visited, ans);
+                str="";
+                tempnode=root;
+            }
+        }
+    }
+    return ans;
+}
+
+int main(){
+    
+    srand((int)time(0));                 // so that random digits are produced each time code is executed
+    cout<<"Welcome to Boggle!"<<endl;
+    TrieNode *root=new TrieNode(' ');    // creating base node
+    TrieNode *temp=NULL;
+    ifstream dictionary;
+    dictionary.open("English_Words.txt");  // opening file containing all words,letters
+    if(!dictionary){                                                     // and abbreviations
+        cout<<"Error opening dictionary"<<endl;
+        return -1;
+    }
+    vector<string> words;
+    int count=0;
+    string fileo;
+    while(getline(dictionary,fileo)){        // copying all words into vector from file
+        words.push_back(fileo);
+        count++;
+    }
+    for(auto i=0;i<count;i++){              // creating a trie
+        bool check=true;
+        temp=root;
+        for(auto j=0;j<words[i].size();j++){     // to check that word contains only letters
+            if((int)words[i][j]-(int)'a'<26 && (int)words[i][j]-(int)'a'>=0){
+                continue;
+            }
+            else{
+                check=false;
+                break;
+            }
+        }
+        if(check){
+            Trie(words[i],temp);
+        }
+    }
+    dictionary.close();      // closing file
+    cout<<endl;
+    char boggle[4][4];
+    boggleCreater(boggle);   // creating boggle
+    cout<<"Current boggle is : "<<endl;
+    for(int i=0;i<4;i++){               // printing boggle
+        for(int j=0;j<4;j++){
+            cout<<boggle[i][j]<<" ";
+        }
+        cout<<endl;
+    }
+    temp=root;
+    vector<string> ans=isWordPresent(temp, boggle);       // getting all words,letter,abbrevaitions present in boggle
+    if(ans.size()==0){                                    // checking if no words are present
+        cout<<"\nNo words present\n";
+    }
+    else{
+        cout<<"\nWords and abbreviations present are : ";    // prinintg all words and abbreviations
+        for(auto i=0;i<ans.size();i++){
+            if(ans[i].size()>2){                             // checking if element is greater than 2 letters
+                if(i==ans.size()-1){
+                    cout<<ans[i];
+                    break;
+                }
+                cout<<ans[i]<<", ";
+            }
+        }
+    }
+    cout<<"\n\n";
+    delete temp;
     return 0;
 }
+
